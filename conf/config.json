@@ -1,0 +1,22 @@
+{
+  "http": {
+    "server": {
+      "ip": "0.0.0.0",
+      "port": 8080
+    },
+    "data_path": "./data"
+  },
+  "gate": {
+    "server": {
+      "ip": "127.0.0.1",
+      "port": 11000
+    },
+    "open": true
+  },
+  "client_log": {
+    "server": {
+      "ip": "127.0.0.1",
+      "port": 12000
+    }
+  }
+}
