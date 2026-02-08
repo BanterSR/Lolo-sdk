@@ -44,27 +44,31 @@ impl LoloSdk {
 
 #[tokio::main]
 async fn main() {
-    match LoloSdk::new().await{
-        Ok(sdk )=> {
-            static STATE: OnceLock<LoloSdk> = OnceLock::new();
-            STATE.set(sdk).expect("TODO: panic message");
-            let listener = match  STATE.get().unwrap().cfg.http.server.listener().await {
-                Ok(listener) => {
-                    tracing::info!("初始化TcpListener完成");
-                    listener
-                },
-                Err(err) => {
-                    tracing::error!("初始化http服务器失败 err:{}",err);
-                    return
-                }
-            };
-            let app = router::router(STATE.get().unwrap());
-
-            axum::serve(listener, app).await.expect("use std::process::exit;");
-        }
+    let sdk = match LoloSdk::new().await {
+        Ok(sdk) => {
+            tracing::info!("初始化sdk完成");
+            sdk
+        },
         Err(err) => {
-            eprintln!("初始化LoloSdk失败 err:{}", err);
+            eprintln!("初始化sdk失败 err:{}", err);
             exit(1);
+        },
+    };
+    static STATE: OnceLock<LoloSdk> = OnceLock::new();
+    STATE.set(sdk).expect("怎么可能失败?");
+
+    let listener = match  STATE.get().unwrap().cfg.http.server.listener().await {
+        Ok(listener) => {
+            tracing::info!("初始化http服务器完成");
+            listener
+        },
+        Err(err) => {
+            tracing::error!("初始化http服务器失败 err:{}",err);
+            return
         }
-    }
+    };
+    let app = router::router(STATE.get().unwrap());
+
+    tracing::info!("Lolo Sdk 启动！");
+    axum::serve(listener, app).await.expect("sdk炸了");
 }

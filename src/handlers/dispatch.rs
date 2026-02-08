@@ -65,7 +65,7 @@ async fn region_info(
     info.client_log_tcp_ip = state.cfg.client_log.server.ip.to_string();
     info.client_log_tcp_port = state.cfg.client_log.server.port;
 
-    info.current_version = form.version;
+    info.current_version = state.dcfg.versions.get_version(form.version);
 
     (StatusCode::OK, Json(info))
 }

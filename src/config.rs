@@ -22,7 +22,7 @@ impl ServerInfo {
     }
     pub async fn listener(&self) -> Result<TcpListener,Box<dyn std::error::Error>> {
         let addr = self.addr();
-        tracing::info!("sdk监听地址: {}",addr);
+        tracing::info!("sdk监听地址: http://{}",addr);
         let listener = TcpListener::bind(addr).await?;
         Ok(listener)
     }
