@@ -1,7 +1,6 @@
 use std::fs;
 use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};
-use tokio::net::TcpListener;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -20,17 +19,16 @@ impl ServerInfo {
     pub fn addr(&self) -> SocketAddr {
         SocketAddr::new(self.ip.parse().unwrap(), self.port)
     }
-    pub async fn listener(&self) -> Result<TcpListener,Box<dyn std::error::Error>> {
-        let addr = self.addr();
-        tracing::info!("sdk监听地址: http://{}",addr);
-        let listener = TcpListener::bind(addr).await?;
-        Ok(listener)
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HttpConfig {
     pub(crate) server: ServerInfo,
+    pub(crate) outer_ip:String,
+    pub(crate) tls_port:u16,
+    pub(crate) data_path:String,
+    pub(crate) photo_share_cdn_url: String,
+    pub(crate) hot_oss_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

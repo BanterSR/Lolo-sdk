@@ -5,9 +5,10 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8.8"
-http = "1.4.0"
 serde = { version = "1.0.228", features = ["derive"] }
 tracing-subscriber = "0.3.22"
-tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread","signal"] }
 serde_json = "1.0.149"
 tracing = "0.1.44"
+axum-server = { version = "0.8", features = ["tls-rustls"] }
+http = "1.4.0"

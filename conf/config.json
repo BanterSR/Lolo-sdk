@@ -4,7 +4,11 @@
       "ip": "0.0.0.0",
       "port": 8080
     },
-    "data_path": "./data"
+    "outer_ip": "127.0.0.1",
+    "tls_port": 4430,
+    "data_path": "./data",
+    "photo_share_cdn_url": "https://cdn-photo-of.inutan.com/cn_prod_main",
+    "hot_oss_url": "http://cdn-of.inutan.com/Resources;https://cdn-of.inutan.com/Resources"
   },
   "gate": {
     "server": {

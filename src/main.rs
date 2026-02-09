@@ -11,8 +11,10 @@ use gdconf::{
     data,
 };
 
-use std::process::exit;
-use std::sync::OnceLock;
+use std::{process::exit,path::PathBuf,sync::OnceLock};
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+use axum_server::tls_rustls::RustlsConfig;
 
 #[derive(Debug)]
 struct LoloSdk {
@@ -27,7 +29,7 @@ impl LoloSdk {
         let cfg = config::read_config()?;
         // 初始化log
         tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
+            .with_max_level(tracing::Level::INFO)
             .with_level(true)
             .init();
         tracing::info!("初始化tracing完成");
@@ -39,6 +41,29 @@ impl LoloSdk {
             cfg,
             dcfg,
         })
+    }
+
+    async fn listener(&self) -> Result<(TcpListener, RustlsConfig),Box<dyn std::error::Error>> {
+        let addr = self.cfg.http.server.addr();
+        tracing::info!("sdk监听地址: http://{}",addr);
+        let listener = TcpListener::bind(addr).await?;
+
+        let config = RustlsConfig::from_pem_file(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("data")
+                .join("cert.pem"),
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("data")
+                .join("key.pem"),
+        ).await?;
+
+        Ok((listener,config))
+    }
+
+    pub fn tls_addr(&self) -> SocketAddr {
+       let addr = SocketAddr::new(self.cfg.http.server.ip.parse().unwrap(), self.cfg.http.tls_port);
+        tracing::info!("sdk监听地址: https://{}",addr);
+        addr
     }
 }
 
@@ -57,10 +82,10 @@ async fn main() {
     static STATE: OnceLock<LoloSdk> = OnceLock::new();
     STATE.set(sdk).expect("怎么可能失败?");
 
-    let listener = match  STATE.get().unwrap().cfg.http.server.listener().await {
-        Ok(listener) => {
+    let listeners = match  STATE.get().unwrap().listener().await {
+        Ok(listeners) => {
             tracing::info!("初始化http服务器完成");
-            listener
+            listeners
         },
         Err(err) => {
             tracing::error!("初始化http服务器失败 err:{}",err);
@@ -69,6 +94,22 @@ async fn main() {
     };
     let app = router::router(STATE.get().unwrap());
 
-    tracing::info!("Lolo Sdk 启动！");
-    axum::serve(listener, app).await.expect("sdk炸了");
+    tracing::info!("Lolo Sdk 启动!");
+    let app_clone = app.clone();
+    let http_server = tokio::spawn(async move {
+        axum::serve(listeners.0, app_clone).await.expect("sdk炸了");
+    });
+    let https_server = tokio::spawn(async move {
+        axum_server::bind_rustls(
+            STATE.get().unwrap().tls_addr(),
+            listeners.1).serve(app.into_make_service())
+            .await.expect("sdk炸了");
+    });
+    tokio::select! {
+        _ = http_server => {},
+        _ = https_server => {},
+        _ = tokio::signal::ctrl_c() => {
+            println!("Lolo 关闭!");
+        }
+    }
 }
