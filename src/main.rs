@@ -2,6 +2,7 @@ mod router;
 mod config;
 mod handlers;
 mod gdconf;
+mod db;
 
 use handlers::{
     dispatch,
@@ -15,6 +16,7 @@ use std::{process::exit,path::PathBuf,sync::OnceLock};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use axum_server::tls_rustls::RustlsConfig;
+use rbatis::RBatis;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{filter::Targets, fmt};
@@ -23,6 +25,7 @@ use tracing_subscriber::{filter::Targets, fmt};
 struct LoloSdk {
     cfg:config::Config,
     dcfg:data::ConfData,
+    sdb:RBatis,
 }
 type LoloSdkRef = &'static LoloSdk;
 
@@ -43,10 +46,12 @@ impl LoloSdk {
         // 初始化data
         let dcfg = data::ConfData::new()?;
         // 初始化数据库
+        let sdb = db::db::init_db().await;
 
         Ok(Self{
             cfg,
             dcfg,
+            sdb,
         })
     }
 
@@ -76,6 +81,10 @@ impl LoloSdk {
 
 #[tokio::main]
 async fn main() {
+    use rustls::crypto::ring::default_provider;
+    default_provider()
+        .install_default()
+        .expect("无法设置默认 CryptoProvider");
     let sdk = match LoloSdk::new().await {
         Ok(sdk) => {
             tracing::info!("初始化sdk完成");
