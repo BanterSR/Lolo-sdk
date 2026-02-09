@@ -15,6 +15,9 @@ use std::{process::exit,path::PathBuf,sync::OnceLock};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use axum_server::tls_rustls::RustlsConfig;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{filter::Targets, fmt};
 
 #[derive(Debug)]
 struct LoloSdk {
@@ -28,9 +31,13 @@ impl LoloSdk {
         // 初始化配置文件
         let cfg = config::read_config()?;
         // 初始化log
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::INFO)
-            .with_level(true)
+        let filter = Targets::new()
+            .with_target("Lolo_sdk", tracing::Level::DEBUG)
+            .with_default(tracing::Level::INFO);
+
+        tracing_subscriber::registry()
+            .with(fmt::layer().with_target(false))
+            .with(filter)
             .init();
         tracing::info!("初始化tracing完成");
         // 初始化data

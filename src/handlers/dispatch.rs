@@ -1,5 +1,5 @@
 use crate::LoloSdkRef;
-use axum::{extract::State, routing::post, Form, Json, Router};
+use axum::{extract::State, routing::{get,post}, Form, Json, Router};
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 
@@ -8,6 +8,8 @@ pub fn routes() -> Router<LoloSdkRef>{
         .route("/dispatch/region_info", post(region_info).
             head(head_region_info).get(head_region_info))
         .route("/dispatch/client_hot_update", post(client_hot_update))
+        .route("/dispatch/get_login_url_list",post(|| async { "" }))
+        .route("/dispatch/get_client_black_list", get(get_client_black_list))
 }
 
 #[allow(dead_code)]
@@ -127,4 +129,23 @@ async fn client_hot_update(
         server_id: String::new(),
         open_cs: true,
     }))
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ClientBlack {
+    #[serde(rename = "ID")]
+    id :i64,
+    #[serde(rename = "manufacturer")]
+    manufacturer:String,
+    #[serde(rename = "model")]
+    model:String,
+}
+
+async fn get_client_black_list() ->  (StatusCode, Json<Vec<ClientBlack>>)  {
+    (StatusCode::OK, Json(vec![
+        ClientBlack{id: 100, manufacturer: "RETRY_LIMITATION".to_string(), model: "4".to_string()},
+        ClientBlack{id: 600, manufacturer: "HUAWEI".to_string(), model: String::new()},
+		ClientBlack{id: 1000, manufacturer: "Samsung".to_string(), model: String::new()},
+		ClientBlack{id: 2000, manufacturer: "Sony".to_string(), model: String::new()},
+    ]))
 }
