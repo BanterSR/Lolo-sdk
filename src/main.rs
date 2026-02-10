@@ -3,8 +3,10 @@ mod config;
 mod handlers;
 mod gdconf;
 mod db;
+mod util;
 
 use handlers::{
+    sub,
     dispatch,
 };
 

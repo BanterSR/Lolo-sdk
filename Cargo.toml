@@ -16,4 +16,10 @@ rbs = { version = "4.7.0" }
 rbatis = { version = "4.7.1"}
 rustls = { version = "0.23.36", features = ["ring"] }
 rbdc-sqlite = { version = "4.7.2" }
+chrono = "0.4.43"
+base64 = "0.22.1"
+
+aes = "0.8"
+cipher = "0.4"
+
 

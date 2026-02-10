@@ -8,7 +8,7 @@ pub fn routes() -> Router<LoloSdkRef>{
         .route("/dispatch/region_info", post(region_info).
             head(head_region_info).get(head_region_info))
         .route("/dispatch/client_hot_update", post(client_hot_update))
-        .route("/dispatch/get_login_url_list",post(|| async { "" }))
+        .route("/dispatch/get_login_url_list",post(|| async { StatusCode::OK }))
         .route("/dispatch/get_client_black_list", get(get_client_black_list))
 }
 
