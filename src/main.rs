@@ -23,11 +23,10 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{filter::Targets, fmt};
 
-#[derive(Debug)]
 struct LoloSdk {
     cfg:config::Config,
     dcfg:data::ConfData,
-    sdb:RBatis,
+    sdb:db::db::SDKDB,
 }
 type LoloSdkRef = &'static LoloSdk;
 
@@ -48,7 +47,10 @@ impl LoloSdk {
         // 初始化data
         let dcfg = data::ConfData::new()?;
         // 初始化数据库
-        let sdb = db::db::init_db().await;
+        let sdb = db::db::SDKDB::new(
+            cfg.sdk.db_type.to_owned(),
+            &cfg.sdk.db_url.clone(),
+        ).await?;
 
         Ok(Self{
             cfg,
@@ -58,7 +60,7 @@ impl LoloSdk {
     }
 
     async fn listener(&self) -> Result<(TcpListener, RustlsConfig),Box<dyn std::error::Error>> {
-        let addr = self.cfg.http.server.addr();
+        let addr = self.cfg.sdk.server.addr();
         tracing::info!("sdk监听地址: http://{}",addr);
         let listener = TcpListener::bind(addr).await?;
 
@@ -75,7 +77,7 @@ impl LoloSdk {
     }
 
     pub fn tls_addr(&self) -> SocketAddr {
-       let addr = SocketAddr::new(self.cfg.http.server.ip.parse().unwrap(), self.cfg.http.tls_port);
+       let addr = SocketAddr::new(self.cfg.sdk.server.ip.parse().unwrap(), self.cfg.sdk.tls_port);
         tracing::info!("sdk监听地址: https://{}",addr);
         addr
     }
@@ -98,7 +100,7 @@ async fn main() {
         },
     };
     static STATE: OnceLock<LoloSdk> = OnceLock::new();
-    STATE.set(sdk).expect("怎么可能失败?");
+    STATE.set(sdk);
 
     let listeners = match  STATE.get().unwrap().listener().await {
         Ok(listeners) => {

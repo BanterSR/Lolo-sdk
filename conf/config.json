@@ -1,5 +1,5 @@
 {
-  "http": {
+  "sdk": {
     "server": {
       "ip": "0.0.0.0",
       "port": 8080
@@ -8,7 +8,9 @@
     "tls_port": 4430,
     "data_path": "./data",
     "photo_share_cdn_url": "https://cdn-photo-of.inutan.com/cn_prod_main",
-    "hot_oss_url": "http://cdn-of.inutan.com/Resources;https://cdn-of.inutan.com/Resources"
+    "hot_oss_url": "http://cdn-of.inutan.com/Resources;https://cdn-of.inutan.com/Resources",
+    "db_type": "mysql",
+    "db_url": "mysql://root:123456@localhost:3306/test"
   },
   "gate": {
     "server": {

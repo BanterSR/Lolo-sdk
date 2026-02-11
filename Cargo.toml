@@ -13,11 +13,13 @@ tracing = "0.1.44"
 axum-server = { version = "0.8", features = ["tls-rustls"]}
 http = "1.4.0"
 rbs = { version = "4.7.0" }
-rbatis = { version = "4.7.1"}
 rustls = { version = "0.23.36", features = ["ring"] }
-rbdc-sqlite = { version = "4.7.2" }
 chrono = "0.4.43"
 base64 = "0.22.1"
+
+rbatis = { version = "4.7.1"}
+rbdc-sqlite = { version = "4.7.2" }
+rbdc-mysql = "4.7.1"
 
 aes = "0.8"
 cipher = "0.4"

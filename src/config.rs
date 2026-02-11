@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub(crate) http: HttpConfig,
+    pub(crate) sdk: SdkConfig,
     pub(crate) gate: GateConfig,
     pub(crate) client_log:ClientLog,
 }
@@ -22,13 +22,24 @@ impl ServerInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HttpConfig {
+#[derive(Clone)]
+pub enum DbType {
+    #[serde(rename = "sqlite")]
+    Sqlite,
+    #[serde(rename = "mysql")]
+    Mysql,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SdkConfig {
     pub(crate) server: ServerInfo,
     pub(crate) outer_ip:String,
     pub(crate) tls_port:u16,
     pub(crate) data_path:String,
     pub(crate) photo_share_cdn_url: String,
     pub(crate) hot_oss_url: String,
+    pub(crate) db_type: DbType,
+    pub(crate) db_url:String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

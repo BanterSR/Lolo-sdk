@@ -70,7 +70,7 @@ async fn region_info(
     info.client_log_tcp_port = state.cfg.client_log.server.port;
 
     info.current_version = state.dcfg.versions.get_version(form.version);
-    info.photo_share_cdn_url = state.cfg.http.photo_share_cdn_url.clone();
+    info.photo_share_cdn_url = state.cfg.sdk.photo_share_cdn_url.clone();
 
     (StatusCode::OK, Json(info))
 }
@@ -114,11 +114,11 @@ async fn client_hot_update(
     (StatusCode::OK, Json(GMClientConfig{
         status: true,
         message: "success".to_string(),
-        hot_oss_url: state.cfg.http.hot_oss_url.clone(),
+        hot_oss_url: state.cfg.sdk.hot_oss_url.clone(),
         current_version: state.dcfg.versions.get_version(form.version),
         server: "Lolo".to_string(),
         ss_app_id: "c969ebf346794cc797ed6eb6c3eac089".to_string(),
-        ss_server_url: format!("https://{}:{}",state.cfg.http.outer_ip,state.cfg.http.tls_port),
+        ss_server_url: format!("https://{}:{}", state.cfg.sdk.outer_ip, state.cfg.sdk.tls_port),
         open_gm: true,
         open_error_log: true,
         open_net_connecting_log: true,
