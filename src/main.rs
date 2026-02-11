@@ -26,7 +26,7 @@ use tracing_subscriber::{filter::Targets, fmt};
 struct LoloSdk {
     cfg:config::Config,
     dcfg:data::ConfData,
-    sdb:db::db::SDKDB,
+    sdb:RBatis,
 }
 type LoloSdkRef = &'static LoloSdk;
 
@@ -47,7 +47,7 @@ impl LoloSdk {
         // 初始化data
         let dcfg = data::ConfData::new()?;
         // 初始化数据库
-        let sdb = db::db::SDKDB::new(
+        let sdb = db::new(
             cfg.sdk.db_type.to_owned(),
             &cfg.sdk.db_url.clone(),
         ).await?;
@@ -100,7 +100,7 @@ async fn main() {
         },
     };
     static STATE: OnceLock<LoloSdk> = OnceLock::new();
-    STATE.set(sdk);
+    let _ = STATE.set(sdk);
 
     let listeners = match  STATE.get().unwrap().listener().await {
         Ok(listeners) => {
