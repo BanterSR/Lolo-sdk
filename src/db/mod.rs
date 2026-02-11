@@ -35,5 +35,6 @@ pub struct GateCheck {
     pub uid:String,
     pub gate_token:Option<String>,
     pub last_package_name:Option<String>,
+    pub gen_key:Option<String>,
 }
 rbatis::crud!(GateCheck {},"of_quick_check");

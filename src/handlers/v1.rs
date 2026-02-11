@@ -5,7 +5,9 @@ use std::{
 use axum::{extract::{Form, State}, Router, routing::{post}, Json};
 use serde::{Deserialize, Serialize};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
+use rbs::{value};
 use crate::{LoloSdkRef, util::aes_ecb_128_decode, handlers::quick, db};
+use crate::handlers::token;
 
 pub fn routes() -> Router<LoloSdkRef>{
     Router::new()
@@ -217,7 +219,7 @@ async fn login_by_name(
             return Json(rsp);
         },
     };
-    let user = match db::UserData::select_by_name(&state.sdb, req.username).await {
+    let mut user = match db::UserData::select_by_name(&state.sdb, req.username).await {
         Ok(mut users) => {
             if users.is_empty() {
                 rsp.set_error(String::from("账号未注册"));
@@ -225,10 +227,22 @@ async fn login_by_name(
             }
             users.remove(0)
         },
-        Err(err) => {
+        Err(_) => {
             rsp.set_error(String::from("账号未注册"));
             return Json(rsp);
         }
+    };
+    // 刷新auth token 和 user token
+    let auth_token = token::SdkToken::new(user.id);
+    let user_token = token::SdkToken::new(user.id);
+    user.auth_token = Some(auth_token.marshal());
+    user.user_token = Some(user_token.marshal());
+    let _ = match db::UserData::update_by_map(&state.sdb,&user,value!{"id":&user.id}).await{
+       Ok(_) => {}
+       Err(err) => {
+           rsp.set_error(format!("{}", err));
+           return Json(rsp);
+       }
     };
 
     rsp.set_data(LoginResultV1::new(user));
@@ -334,7 +348,8 @@ async fn get_user_info(
             return Json(rsp);
         },
     };
-    let user = match db::UserData::select_by_id(&state.sdb, 1).await {
+    let token = token::SdkToken::unmarshal(req.auth_token.clone());
+    let user = match db::UserData::select_by_id(&state.sdb, token.id).await {
         Ok(mut users) => {
             if users.is_empty() {
                 rsp.set_error(String::from("账号未注册"));
@@ -342,11 +357,16 @@ async fn get_user_info(
             }
             users.remove(0)
         },
-        Err(err) => {
+        Err(_) => {
             rsp.set_error(String::from("账号未注册"));
             return Json(rsp);
         }
     };
+    if user.auth_token != Some(req.auth_token) {
+        rsp.set_error(String::from("账号未注册"));
+        return Json(rsp);
+    }
+
     let mut data = UserExtraInfo{
         is_bind_phone: 1,
         nick_name: user.username,

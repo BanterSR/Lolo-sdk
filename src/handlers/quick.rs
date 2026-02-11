@@ -29,7 +29,10 @@ impl<T> Response<T> {
             status:true,
             data: None,
             message: String::new(),
-            error: None,
+            error: Option::from(Error {
+                id: 0,
+                message: String::new(),
+            }),
         }
     }
 

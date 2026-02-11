@@ -7,7 +7,7 @@ use axum::{
 };
 
 use crate::{dispatch,sub, LoloSdkRef};
-use crate::handlers::v1;
+use crate::handlers::{token, v1, v2};
 
 pub(crate) fn router(x: LoloSdkRef) ->Router {
     Router::new()
@@ -15,6 +15,8 @@ pub(crate) fn router(x: LoloSdkRef) ->Router {
         .merge(sub::routes())
         .merge(dispatch::routes()) // dispatch
         .merge(v1::routes()) // v1
+        .merge(v2::routes()) // v2
+        .merge(token::routes()) // token api
         .layer(middleware::from_fn(axum_log))
         .with_state(x)
 }
